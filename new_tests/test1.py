@@ -1,4 +1,4 @@
-import requests
+from stub import requests
 
 def c():
     pass
