@@ -373,7 +373,7 @@ def _find_link_for_call(call, node_a, all_nodes):
     :param all_nodes list[Node]:
 
     :returns: The node it links to and the call if >1 node matched.
-    :rtype: (Node|None, Call|None)
+    :rtype: (list[Node|None, Int], Call|None)
     """
 
     all_vars = node_a.get_variables(call.line_number)
@@ -383,9 +383,9 @@ def _find_link_for_call(call, node_a, all_nodes):
         if var_match:
             # Unknown modules (e.g. third party) we don't want to match)
             if var_match == OWNER_CONST.UNKNOWN_MODULE:
-                return None, None
+                return [None, -1], None
             assert isinstance(var_match, Node)
-            return var_match, None
+            return [var_match, call.line_number], None
 
     possible_nodes = []
     if call.is_attr():
@@ -393,21 +393,21 @@ def _find_link_for_call(call, node_a, all_nodes):
             # checking node.parent != node_a.file_group() prevents self linkage in cases like
             # function a() {b = Obj(); b.a()}
             if call.token == node.token and node.parent != node_a.file_group():
-                possible_nodes.append(node)
+                possible_nodes.append([node, call.line_number])
     else:
         for node in all_nodes:
             if call.token == node.token \
                and isinstance(node.parent, Group)  \
                and node.parent.group_type == GROUP_TYPE.FILE:
-                possible_nodes.append(node)
+                possible_nodes.append([node, call.line_number])
             elif call.token == node.parent.token and node.is_constructor:
-                possible_nodes.append(node)
+                possible_nodes.append([node, call.line_number])
 
     if len(possible_nodes) == 1:
         return possible_nodes[0], None
     if len(possible_nodes) > 1:
-        return None, call
-    return None, None
+        return [None, -1], call
+    return [None, -1], None
 
 
 def _find_links(node_a, all_nodes):
@@ -418,15 +418,16 @@ def _find_links(node_a, all_nodes):
     :param Node node_a:
     :param list[Node] all_nodes:
     :param BaseLanguage language:
-    :rtype: list[(Node, Call)]
+    :rtype: list[(list[Node, line number], Call)]
     """
 
     links = []
     for call in node_a.calls:
         lfc = _find_link_for_call(call, node_a, all_nodes)
-        assert not isinstance(lfc, Group)
-        links.append(lfc)
-    return list(filter(None, links))
+        assert not isinstance(lfc[0], Group)
+        if lfc[0]:
+            links.append(lfc)
+    return links
 
 
 def map_it(sources, extension, no_trimming, exclude_namespaces, exclude_functions,
@@ -520,12 +521,14 @@ def map_it(sources, extension, no_trimming, exclude_namespaces, exclude_function
     edges = []
     for node_a in list(all_nodes):
         links = _find_links(node_a, all_nodes)
-        for node_b, bad_call in links:
+        for node_b_info, bad_call in links:
+            node_b = node_b_info[0]
+            call_ln = node_b_info[1]
             if bad_call:
                 bad_calls.append(bad_call)
             if not node_b:
                 continue
-            edges.append(Edge(node_a, node_b))
+            edges.append(Edge(node_a, node_b, call_ln))
 
     # 7. Loudly complain about duplicate edges that were skipped
     bad_calls_strings = set()

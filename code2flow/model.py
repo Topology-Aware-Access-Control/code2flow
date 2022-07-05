@@ -200,8 +200,8 @@ class Call():
         :rtype: str
         """
         if self.owner_token:
-            return f"{self.owner_token}.{self.token}()"
-        return f"{self.token}()"
+            return f"{self.line_number}:{self.owner_token}.{self.token}()"
+        return f"{self.line_number}:{self.token}()"
 
     def is_attr(self):
         """
@@ -448,9 +448,10 @@ def _wrap_as_variables(sequence):
 
 
 class Edge():
-    def __init__(self, node0, node1):
+    def __init__(self, node0, node1, line_number=-1):
         self.node0 = node0
         self.node1 = node1
+        self.line_number = line_number
 
         # When we draw the edge, we know the calling function is definitely not a leaf...
         # and the called function is definitely not a trunk
@@ -458,7 +459,7 @@ class Edge():
         node1.is_trunk = False
 
     def __repr__(self):
-        return f"<Edge {self.node0} -> {self.node1}"
+        return f"<Edge ({self.line_number}) {self.node0} -> {self.node1}"
 
     def __lt__(self, other):
         if self.node0 == other.node0:
@@ -473,7 +474,7 @@ class Edge():
         '''
         ret = self.node0.uid + ' -> ' + self.node1.uid
         source_color = int(self.node0.uid.split("_")[-1], 16) % len(EDGE_COLORS)
-        ret += f' [color="{EDGE_COLORS[source_color]}" penwidth="2"]'
+        ret += f' [color="{EDGE_COLORS[source_color]}" penwidth="2" label="{self.line_number}"]'
         return ret
 
     def to_dict(self):
@@ -484,6 +485,7 @@ class Edge():
             'source': self.node0.uid,
             'target': self.node1.uid,
             'directed': True,
+            'line_number': self.line_number,
         }
 
 
