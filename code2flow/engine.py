@@ -693,6 +693,7 @@ def code2flow(raw_source_paths, output_file, language=None, hide_legend=True,
     :param int level: logging level
     :rtype: None
     """
+    print("new thing")
     start_time = time.time()
 
     if not isinstance(raw_source_paths, list):
