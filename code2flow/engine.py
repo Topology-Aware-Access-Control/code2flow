@@ -18,7 +18,7 @@ VERSION = '2.5.0'
 
 IMAGE_EXTENSIONS = ('png', 'svg')
 TEXT_EXTENSIONS = ('dot', 'gv', 'json')
-VALID_EXTENSIONS = IMAGE_EXTENSIONS + TEXT_EXTENSIONS
+VALID_EXTENSIONS = IMAGE_EXTENSIONS + TEXT_EXTENSIONS + ('out',)
 
 DESCRIPTION = "Generate flow charts from your source code. " \
               "See the README at https://github.com/scottrogowski/code2flow."
@@ -225,7 +225,7 @@ def generate_json(nodes, edges):
         "directed": True,
         "nodes": nodes,
         "edges": edges,
-    }})
+    }}, indent=4)
 
 
 def write_file(outfile, nodes, edges, groups, hide_legend=False,
@@ -671,7 +671,7 @@ def _generate_final_img(output_file, extension, final_img_filename, num_edges):
                  final_img_filename)
 
 
-def code2flow(raw_source_paths, output_file, language=None, hide_legend=True,
+def code2flow(raw_source_paths, output_file="ret.out", language=None, hide_legend=True,
               exclude_namespaces=None, exclude_functions=None,
               include_only_namespaces=None, include_only_functions=None,
               no_grouping=False, no_trimming=False, skip_parse_errors=False,
@@ -749,6 +749,10 @@ def code2flow(raw_source_paths, output_file, language=None, hide_legend=True,
 
     logging.info("Generating output file...")
 
+    if output_file == "ret.out":
+        content = generate_json(all_nodes, edges)
+        return content
+    
     if isinstance(output_file, str):
         with open(output_file, 'w') as fh:
             as_json = output_ext == 'json'
