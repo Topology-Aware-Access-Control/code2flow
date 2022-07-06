@@ -749,7 +749,7 @@ def code2flow(raw_source_paths, output_file="ret.out", language=None, hide_legen
     logging.info("Generating output file...")
 
     if output_file == "ret.out":
-        content = generate_json(all_nodes, edges)
+        content = json.loads(generate_json(all_nodes, edges))
         return content
     
     if isinstance(output_file, str):
