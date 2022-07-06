@@ -677,8 +677,7 @@ def code2flow(raw_source_paths, output_file="ret.out", language=None, hide_legen
               no_grouping=False, no_trimming=False, skip_parse_errors=False,
               lang_params=None, subset_params=None, level=logging.INFO):
     """
-    Top-level function. Generate a diagram based on source code.
-    Can generate either a dotfile or an image.
+    Top-level function. Generate Call Graph.
 
     :param list[str] raw_source_paths: file or directory paths
     :param str|file output_file: path to the output file. SVG/PNG will generate an image.
