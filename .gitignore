@@ -6,6 +6,7 @@ htmlcov
 build/
 *.egg-info
 dist
+node_modules
 composer.json
 composer.lock
 vendor
